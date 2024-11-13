@@ -8,7 +8,7 @@
 ### Run Test Suite
 
 ```shell
-$ rm -rf corpus && rm -rf crytic-export && forge clean && forge build &&  echidna . --contract TestFactory  --config ./config.yaml# one-world-fuzz
+$ rm -rf corpus && rm -rf crytic-export && forge clean && forge build &&  echidna . --contract TestFactory  --config ./config.yaml
 ```
 
 This Code Assumes that you already have echidna install and it is working fine.
