@@ -3,12 +3,11 @@ pragma solidity 0.8.22;
 
 uint64 constant TIER_MAX = 3;
 
-enum DAOType { 
+enum DAOType {
     PUBLIC,
     PRIVATE,
     SPONSORED
 }
-
 
 struct DAOConfig {
     string ensname;
@@ -17,8 +16,8 @@ struct DAOConfig {
     address currency;
     uint256 maxMembers;
     uint256 noOfTiers;
-    //joined members check
 }
+//joined members check
 
 struct DAOInputConfig {
     string ensname;

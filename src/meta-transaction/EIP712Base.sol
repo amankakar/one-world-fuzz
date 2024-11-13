@@ -1,7 +1,5 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
-
 
 contract EIP712Base {
     struct EIP712Domain {
@@ -11,17 +9,11 @@ contract EIP712Base {
         bytes32 salt;
     }
 
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH = keccak256(
-        bytes(
-            "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-        )
-    );
+    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
+        keccak256(bytes("EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"));
     bytes32 internal domainSeperator;
 
-    constructor(
-        string memory name,
-        string memory version
-    ){
+    constructor(string memory name, string memory version) {
         _setDomainSeperator(name, version);
     }
 
@@ -56,14 +48,7 @@ contract EIP712Base {
      * "\\x19" makes the encoding deterministic
      * "\\x01" is the version byte to make it compatible to EIP-191
      */
-    function toTypedMessageHash(bytes32 messageHash)
-        internal
-        view
-        returns (bytes32)
-    {
-        return
-            keccak256(
-                abi.encodePacked("\x19\x01", getDomainSeperator(), messageHash)
-            );
+    function toTypedMessageHash(bytes32 messageHash) internal view returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19\x01", getDomainSeperator(), messageHash));
     }
 }

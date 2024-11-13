@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import { IMembershipERC1155 } from "./interfaces/IERC1155Mintable.sol";
-import { ICurrencyManager } from "./interfaces/ICurrencyManager.sol";
-import { DAOConfig, DAOInputConfig, TierConfig, DAOType, TIER_MAX } from "./libraries/MembershipDAOStructs.sol";
-import {IERC20} from  "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IMembershipERC1155} from "./interfaces/IERC1155Mintable.sol";
+import {ICurrencyManager} from "./interfaces/ICurrencyManager.sol";
+import {DAOConfig, DAOInputConfig, TierConfig, DAOType, TIER_MAX} from "./libraries/MembershipDAOStructs.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { NativeMetaTransaction } from "../meta-transaction/NativeMetaTransaction.sol";
+import {NativeMetaTransaction} from "../meta-transaction/NativeMetaTransaction.sol";
 import "forge-std/Test.sol";
 
 /// @title Membership Factory Contract
@@ -32,7 +32,12 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
     /// @param _currencyManager The address of the CurrencyManager contract
     /// @param _baseURI Base URI for the NFT metadata
     /// @param _membershipImplementation The address of the MembershipERC1155 implementation contract
-    constructor(address _currencyManager, address _owpWallet, string memory _baseURI, address _membershipImplementation) {
+    constructor(
+        address _currencyManager,
+        address _owpWallet,
+        string memory _baseURI,
+        address _membershipImplementation
+    ) {
         currencyManager = ICurrencyManager(_currencyManager);
         baseURI = _baseURI;
         owpWallet = _owpWallet;
@@ -54,7 +59,9 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
     /// @param tierConfigs The configurations for the tiers
     /// @return The address of the newly created Membership ERC1155 proxy contract
     function createNewDAOMembership(DAOInputConfig memory daoConfig, TierConfig[] memory tierConfigs)
-        external returns (address) {
+        external
+        returns (address)
+    {
         require(currencyManager.isCurrencyWhitelisted(daoConfig.currency), "Currency not accepted.");
         require(daoConfig.noOfTiers == tierConfigs.length, "Invalid tier input.");
         require(daoConfig.noOfTiers > 0 && daoConfig.noOfTiers <= TIER_MAX, "Invalid tier count.");
@@ -73,7 +80,14 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             membershipImplementation,
             address(proxyAdmin),
-            abi.encodeWithSignature("initialize(string,string,string,address,address)", daoConfig.ensname, "OWP", baseURI, _msgSender(), daoConfig.currency)
+            abi.encodeWithSignature(
+                "initialize(string,string,string,address,address)",
+                daoConfig.ensname,
+                "OWP",
+                baseURI,
+                _msgSender(),
+                daoConfig.currency
+            )
         );
 
         DAOConfig storage dao = daos[address(proxy)];
@@ -99,13 +113,16 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
     /// @param tierConfigs The new tier configurations
     /// @return The address of the updated DAO
     function updateDAOMembership(string calldata ensName, TierConfig[] memory tierConfigs)
-        external onlyRole(EXTERNAL_CALLER) returns (address) {
+        external
+        onlyRole(EXTERNAL_CALLER)
+        returns (address)
+    {
         address daoAddress = getENSAddress[ensName];
         require(tierConfigs.length <= TIER_MAX, "Invalid tier count.");
         require(tierConfigs.length > 0, "Invalid tier count.");
         require(daoAddress != address(0), "DAO does not exist.");
         DAOConfig storage dao = daos[daoAddress];
-        if(dao.daoType == DAOType.SPONSORED){
+        if (dao.daoType == DAOType.SPONSORED) {
             require(tierConfigs.length == TIER_MAX, "Invalid tier count.");
         }
 
@@ -127,7 +144,7 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
         }
 
         // updating the ceiling limit acc to new data
-        if(maxMembers > dao.maxMembers){
+        if (maxMembers > dao.maxMembers) {
             dao.maxMembers = maxMembers;
         }
 
@@ -135,23 +152,27 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
         return daoAddress;
     }
 
-
     /// @notice Allows a user to join a DAO by purchasing a membership NFT at a specific tier
     /// @param daoMembershipAddress The address of the DAO membership NFT
     /// @param tierIndex The index of the tier to join
     function joinDAO(address daoMembershipAddress, uint256 tierIndex) external {
         require(daos[daoMembershipAddress].noOfTiers > tierIndex, "Invalid tier.");
-        require(daos[daoMembershipAddress].tiers[tierIndex].amount > daos[daoMembershipAddress].tiers[tierIndex].minted, "Tier full.");
+        require(
+            daos[daoMembershipAddress].tiers[tierIndex].amount > daos[daoMembershipAddress].tiers[tierIndex].minted,
+            "Tier full."
+        );
         uint256 tierPrice = daos[daoMembershipAddress].tiers[tierIndex].price;
         // uint256 platformFees = (20 * tierPrice) / 100; // @audit : round up becuase 1 wie of BTC is alomt 8$
         uint256 tokenDecimals = 6;
-        uint256 adjustedAmount = tierPrice * 10**tokenDecimals;
+        uint256 adjustedAmount = tierPrice * 10 ** tokenDecimals;
         uint256 platformFees = (20 * tierPrice) / (100);
-        console.log("tierPrice" , tierPrice);
-        console.log("platformFees" , platformFees);
+        console.log("tierPrice", tierPrice);
+        console.log("platformFees", platformFees);
         daos[daoMembershipAddress].tiers[tierIndex].minted += 1;
         IERC20(daos[daoMembershipAddress].currency).transferFrom(_msgSender(), owpWallet, platformFees);
-        IERC20(daos[daoMembershipAddress].currency).transferFrom(_msgSender(), daoMembershipAddress, tierPrice - platformFees);
+        IERC20(daos[daoMembershipAddress].currency).transferFrom(
+            _msgSender(), daoMembershipAddress, tierPrice - platformFees
+        );
         IMembershipERC1155(daoMembershipAddress).mint(_msgSender(), tierIndex, 1);
         emit UserJoinedDAO(_msgSender(), daoMembershipAddress, tierIndex);
     }
@@ -180,27 +201,24 @@ contract MembershipFactory is AccessControl, NativeMetaTransaction {
     /// @param contractAddress The address of the external contract
     /// @param data The calldata to be sent
     /// @return result The bytes result of the external call
-    function callExternalContract(address contractAddress, bytes memory data) external payable onlyRole(EXTERNAL_CALLER) returns (bytes memory ) {
+    function callExternalContract(address contractAddress, bytes memory data)
+        external
+        payable
+        onlyRole(EXTERNAL_CALLER)
+        returns (bytes memory)
+    {
         (bool success, bytes memory returndata) = contractAddress.call{value: msg.value}(data);
         require(success, "External call failed");
         return returndata;
     }
 
-    function _msgSender()
-        internal
-        view
-        override
-        returns (address sender)
-    {
+    function _msgSender() internal view override returns (address sender) {
         if (msg.sender == address(this)) {
             bytes memory array = msg.data;
             uint256 index = msg.data.length;
             assembly {
                 // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
-                sender := and(
-                    mload(add(array, index)),
-                    0xffffffffffffffffffffffffffffffffffffffff
-                )
+                sender := and(mload(add(array, index)), 0xffffffffffffffffffffffffffffffffffffffff)
             }
         } else {
             sender = msg.sender;

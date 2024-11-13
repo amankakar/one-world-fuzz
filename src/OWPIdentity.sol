@@ -11,7 +11,9 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract OWPIdentity is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply, NativeMetaTransaction {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     using Strings for uint256;
+
     string public name = "One World Project";
     string public symbol = "OWP";
 
@@ -28,10 +30,7 @@ contract OWPIdentity is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply, 
         return string.concat(super.uri(tokenId), tokenId.toString());
     }
 
-    function mint(address account, uint256 id, uint256 amount, bytes memory data)
-        public
-        onlyRole(MINTER_ROLE)
-    {
+    function mint(address account, uint256 id, uint256 amount, bytes memory data) public onlyRole(MINTER_ROLE) {
         _mint(account, id, amount, data);
     }
 
@@ -42,15 +41,13 @@ contract OWPIdentity is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply, 
         _mintBatch(to, ids, amounts, data);
     }
 
-    function burn(address account, uint256 id, uint256 amount)
-        public override
-        onlyRole(MINTER_ROLE)
-    {
+    function burn(address account, uint256 id, uint256 amount) public override onlyRole(MINTER_ROLE) {
         _burn(account, id, amount);
     }
 
     function burnBatch(address to, uint256[] memory ids, uint256[] memory amounts)
-        public override
+        public
+        override
         onlyRole(MINTER_ROLE) // @audit : add a burner role to burn nfts
     {
         _burnBatch(to, ids, amounts);
@@ -63,37 +60,28 @@ contract OWPIdentity is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply, 
         require(tos.length == ids.length, "Invalid input");
         require(amounts.length == ids.length, "Invalid input");
 
-        for(uint256 i = 0; i < tos.length; i++){
-            _burn(tos[i], ids[i], amounts[i]);            
+        for (uint256 i = 0; i < tos.length; i++) {
+            _burn(tos[i], ids[i], amounts[i]);
         }
     }
 
     // The following functions are overrides required by Solidity.
-    function _update(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) internal virtual override(ERC1155, ERC1155Supply){
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory amounts)
+        internal
+        virtual
+        override(ERC1155, ERC1155Supply)
+    {
         require(from == address(0) || to == address(0), "OWPIdentity: NFT Not transferrable.");
         super._update(from, to, ids, amounts);
     }
 
-    function _msgSender()
-        internal
-        view
-        override
-        returns (address sender)
-    {
+    function _msgSender() internal view override returns (address sender) {
         if (msg.sender == address(this)) {
             bytes memory array = msg.data;
             uint256 index = msg.data.length;
             assembly {
                 // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
-                sender := and(
-                    mload(add(array, index)),
-                    0xffffffffffffffffffffffffffffffffffffffff
-                )
+                sender := and(mload(add(array, index)), 0xffffffffffffffffffffffffffffffffffffffff)
             }
         } else {
             sender = msg.sender;
@@ -101,12 +89,7 @@ contract OWPIdentity is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply, 
         return sender;
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC1155, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC1155, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

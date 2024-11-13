@@ -32,7 +32,7 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     event Claim(address indexed account, uint256 amount);
     event Profit(uint256 amount);
 
-    constructor(){
+    constructor() {
         _disableInitializers();
     }
 
@@ -88,18 +88,15 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
 
     /// @notice Burn all tokens of multiple users
     /// @param froms The addresses from which tokens will be burned
-    function burnBatchMultiple(address[] memory froms)
-        public
-        onlyRole(OWP_FACTORY_ROLE)
-    {
-        for(uint256 j = 0; j < froms.length; ++j){
-            for(uint256 i = 0; i < 7; ++i){
+    function burnBatchMultiple(address[] memory froms) public onlyRole(OWP_FACTORY_ROLE) {
+        for (uint256 j = 0; j < froms.length; ++j) {
+            for (uint256 i = 0; i < 7; ++i) {
                 uint256 amount = balanceOf(froms[j], i);
                 if (amount > 0) {
                     burn_(froms[j], i, amount);
                 }
             }
-        }        
+        }
     }
 
     /// @notice Set a new URI for all token types
@@ -115,12 +112,14 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     }
 
     function uri(uint256 tokenId) public view virtual override returns (string memory) {
-        return string(abi.encodePacked(
-            super.uri(tokenId),
-            Strings.toHexString(uint256(uint160(address(this))), 20),
-            "/",
-            Strings.toString(tokenId)
-        ));
+        return string(
+            abi.encodePacked(
+                super.uri(tokenId),
+                Strings.toHexString(uint256(uint160(address(this))), 20),
+                "/",
+                Strings.toString(tokenId)
+            )
+        );
     }
 
     /// @notice Get the token symbol
@@ -133,10 +132,12 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     /// @param interfaceId The interface identifier, as specified in ERC-165
     /// @return True if the contract supports the interface
     function supportsInterface(bytes4 interfaceId)
-        public view override(ERC1155Upgradeable, AccessControlUpgradeable) returns (bool) {
-        return
-            interfaceId == type(IMembershipERC1155).interfaceId ||
-            super.supportsInterface(interfaceId);
+        public
+        view
+        override(ERC1155Upgradeable, AccessControlUpgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(IMembershipERC1155).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /// @notice Claim profits accumulated from the profit pool
@@ -167,13 +168,9 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     /// @param account The account to query
     /// @return The weighted share of the account
     function shareOf(address account) public view returns (uint256) {
-        return (balanceOf(account, 0) * 64) +
-               (balanceOf(account, 1) * 32) +
-               (balanceOf(account, 2) * 16) +
-               (balanceOf(account, 3) * 8) +
-               (balanceOf(account, 4) * 4) +
-               (balanceOf(account, 5) * 2) +
-               balanceOf(account, 6);
+        return (balanceOf(account, 0) * 64) + (balanceOf(account, 1) * 32) + (balanceOf(account, 2) * 16)
+            + (balanceOf(account, 3) * 8) + (balanceOf(account, 4) * 4) + (balanceOf(account, 5) * 2)
+            + balanceOf(account, 6);
     }
 
     /// @notice Updates profit tracking after a claim
@@ -200,12 +197,11 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     }
 
     // Override transfers to update savedProfit (claimed rewards)
-    function _update(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) internal virtual override(ERC1155Upgradeable) {
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory amounts)
+        internal
+        virtual
+        override(ERC1155Upgradeable)
+    {
         if (from != address(0)) saveProfit(from);
         if (to != address(0)) saveProfit(to);
         super._update(from, to, ids, amounts);
@@ -215,7 +211,12 @@ contract MembershipERC1155 is ERC1155Upgradeable, AccessControlUpgradeable, IMem
     /// @param contractAddress The address of the external contract
     /// @param data The calldata to be sent
     /// @return result The bytes result of the external call
-    function callExternalContract(address contractAddress, bytes memory data) external payable onlyRole(OWP_FACTORY_ROLE) returns (bytes memory ) {
+    function callExternalContract(address contractAddress, bytes memory data)
+        external
+        payable
+        onlyRole(OWP_FACTORY_ROLE)
+        returns (bytes memory)
+    {
         (bool success, bytes memory returndata) = contractAddress.call{value: msg.value}(data);
         require(success, "External call failed");
         return returndata;

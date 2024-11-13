@@ -1,68 +1,15 @@
-## Foundry
+## One world
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**This Repo contain the Echidna based Fuzz test suite**
 
-Foundry consists of:
+-   **Forge**: Fooundry based test cases can be found in `/test` dir.
+-   **Echidna**: Echidna Based Fuzz test are added inside src dir. the `Setup.sol` file contain the setup code and `TestFactory.sol` contain test cases for various function of `MembershipFactory`.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
+### Run Test Suite
 
 ```shell
-$ forge build
+$ rm -rf corpus && rm -rf crytic-export && forge clean && forge build &&  echidna . --contract TestFactory  --config ./config.yaml# one-world-fuzz
 ```
 
-### Test
+This Code Assumes that you already have echidna install and it is working fine.
 
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
-
-rm -rf corpus && rm -rf crytic-export && forge clean && forge build &&  echidna . --contract TestFactory  --config ./config.yaml# one-world-fuzz
