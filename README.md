@@ -2,7 +2,7 @@
 
 **This Repo contain the Echidna based Fuzz test suite**
 
--   **Forge**: Fooundry based test cases can be found in `/test` dir.
+-   **Forge**: Foundry based test cases can be found in `/test` dir.
 -   **Echidna**: Echidna Based Fuzz test are added inside src dir. the `Setup.sol` file contain the setup code and `TestFactory.sol` contain test cases for various function of `MembershipFactory`.
 
 ### Run Test Suite
